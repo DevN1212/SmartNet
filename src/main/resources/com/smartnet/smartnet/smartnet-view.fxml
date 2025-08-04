@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+<VBox alignment="TOP_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.smartnet.smartnet.SmartNetController">
   <padding>
-    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
   </padding>
 
-  <Label fx:id="welcomeText"/>
-  <Button text="Hello!" onAction="#onHelloButtonClick"/>
+  <Label text="SmartNet CIDR Scanner" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+
+  <HBox spacing="10.0" alignment="CENTER">
+    <Label text="CIDR Address:"/>
+    <TextField fx:id="cidrAddress" promptText="e.g., 192.168.1.0/24" prefWidth="250"/>
+    <Button fx:id="scan" text="Scan" onAction="#startScan"/>
+  </HBox>
+
+  <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">
+    <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
+      <columns>
+        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="200"/>
+        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+        <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>
+      </columns>
+    </TableView>
+
+    <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="10" visible="false">
+      <ProgressIndicator fx:id="progressIndicator" prefWidth="50" prefHeight="50"/>
+      <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>
+    </VBox>
+  </StackPane>
 </VBox>
