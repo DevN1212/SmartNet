@@ -76,6 +76,7 @@ public class NetworkScanner {
      */
     public List<HostScanResults> scanSubnetCIDRThreadPool(String cidr, List<Integer> ports, int threads) {
         List<String> ipAddresses = generateIP(cidr);
+        threads=Math.min(threads, ipAddresses.size());
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         List<Future<HostScanResults>> futures = new ArrayList<>();
 

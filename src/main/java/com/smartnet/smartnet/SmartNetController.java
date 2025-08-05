@@ -14,11 +14,24 @@ import java.util.List;
 public class SmartNetController {
 
     @FXML
-    private TextField cidrAddress;
-
+    private TextField IPAddress_in;
+    @FXML
+    private TextField cidrRange;
     @FXML
     private Button scan;
 
+    @FXML
+    private ToggleGroup portOptionGroup;
+
+    @FXML
+    private RadioButton popularPortsRadio;
+    @FXML
+    private RadioButton top1000PortsRadio;
+    @FXML
+    private RadioButton customPortsRadio;
+
+    @FXML
+    private TextField customPortsField;
     @FXML
     private TableView<NetworkScanner.HostScanResults> resultTable;
 
@@ -46,39 +59,117 @@ public class SmartNetController {
         portsColumn.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().openPorts.isEmpty() ? "-" : data.getValue().openPorts.toString()));
+        popularPortsRadio.setToggleGroup(portOptionGroup);
+        top1000PortsRadio.setToggleGroup(portOptionGroup);
+        customPortsRadio.setToggleGroup(portOptionGroup);
+
+        // Enable/disable custom port field based on selection
+        customPortsRadio.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            customPortsField.setDisable(!newVal);
+        });
 
         resultTable.setItems(scanResults);
     }
-
     @FXML
     protected void startScan() {
-        String cidr = cidrAddress.getText().trim();
+        String IPAddress = IPAddress_in.getText().trim();
         scanResults.clear();
 
-        if (!cidr.matches("\\b(?:\\d{1,3}\\.){3}\\d{1,3}/\\d{1,2}\\b")) {
-            showAlert("Invalid CIDR format. Example: 192.168.1.0/24");
+        // Validate base IP
+        String ipRegex = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$";
+        if (!IPAddress.matches(ipRegex)) {
+            showAlert("Invalid IP Address");
             return;
         }
 
+        String prefix = cidrRange.getText().trim(); // e.g. "/24"
+        boolean isCIDR;
+        String fullCIDR;
+
+        // Validate prefix and form CIDR if valid
+        if (!prefix.isEmpty()) {
+            if (prefix.matches("^/(\\d|[12]\\d|3[0-2])$")) {
+                isCIDR = true;
+                fullCIDR = IPAddress + prefix;
+            } else {
+                fullCIDR = "";
+                isCIDR = false;
+                showAlert("Invalid CIDR prefix (e.g., /24)");
+                return;
+            }
+        } else {
+            fullCIDR = "";
+            isCIDR = false;
+        }
+
+        // UI preparation
         scan.setDisable(true);
         loadingOverlay.setVisible(true);
         resultTable.setVisible(false);
 
         new Thread(() -> {
-            List<Integer> ports = Arrays.asList(22, 80, 443, 8080);
-            List<NetworkScanner.HostScanResults> results = scanner.scanSubnetCIDRThreadPool(cidr, ports, 10);
+            List<Integer> ports;
 
-            Platform.runLater(() -> {
-                for (NetworkScanner.HostScanResults result : results) {
+            if (popularPortsRadio.isSelected()) {
+                ports = Arrays.asList(22, 80, 443, 8080, 21, 23, 25, 110); // Add more if needed
+            } else if (top1000PortsRadio.isSelected()) {
+                ports = new java.util.ArrayList<>();
+                for (int i = 1; i <= 1000; i++) {
+                    ports.add(i);
+                }
+            } else {
+                // Custom ports
+                ports = new java.util.ArrayList<>();
+                String customInput = customPortsField.getText().trim();
+                if (customInput.isEmpty()) {
+                    showAlert("Please enter custom ports (comma-separated).");
+                    return;
+                }
+                try {
+                    String[] parts = customInput.split(",");
+                    for (String part : parts) {
+                        int port = Integer.parseInt(part.trim());
+                        if (port < 1 || port > 65535) {
+                            showAlert("Port number out of range: " + port);
+                            return;
+                        }
+                        ports.add(port);
+                    }
+                } catch (NumberFormatException e) {
+                    showAlert("Invalid port format. Use comma-separated numbers.");
+                    return;
+                }
+            }
+
+
+            if (isCIDR) {
+                // CIDR subnet scan
+                List<NetworkScanner.HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10);
+                Platform.runLater(() -> {
+                    for (NetworkScanner.HostScanResults result : results) {
+                        if (result.isReachable) {
+                            scanResults.add(result);
+                        }
+                    }
+                    finishScan();
+                });
+            } else {
+                // Single IP scan
+                NetworkScanner.HostScanResults result = scanner.scanHost(IPAddress, ports);
+                Platform.runLater(() -> {
                     if (result.isReachable) {
                         scanResults.add(result);
                     }
-                }
-                scan.setDisable(false);
-                loadingOverlay.setVisible(false);
-                resultTable.setVisible(true);
-            });
+                    finishScan();
+                });
+            }
         }).start();
+    }
+
+    private void finishScan() {
+        scan.setDisable(false);
+        loadingOverlay.setVisible(false);
+        resultTable.setVisible(true);
     }
 
     private void showAlert(String message) {

@@ -12,7 +12,7 @@ public class SmartNetApp extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(SmartNetApp.class.getResource("smartnet-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Hello!");
+        stage.setTitle("SmartNet");
         stage.setScene(scene);
         stage.show();
     }
