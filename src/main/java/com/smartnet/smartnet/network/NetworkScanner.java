@@ -24,11 +24,13 @@ public class NetworkScanner {
         public final boolean isReachable;
         public final List<Integer> openPorts;
         public final String macAddress;
-        public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress) {
+        public final String hostName;
+        public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName) {
             this.ipAddress = ipAddress;
             this.isReachable = isReachable;
             this.openPorts = openPorts;
             this.macAddress = macAddress;
+            this.hostName = hostName;
         }
     }
 
@@ -63,19 +65,33 @@ public class NetworkScanner {
         boolean isUP = isReachable(ip);
         List<Integer> openPorts = new ArrayList<>();
         String macAddress="-";
+        String hostName="N/A";
         if (isUP) {
             for (int port : ports) {
                 if (isPortOpen(ip, port, 200)) {
                     openPorts.add(port);
                 }
             }
+            hostName=resolveReverseDns(ip);
             macAddress=resolveMac(ip);
 
         }
 
-        return new HostScanResults(ip, isUP, openPorts,macAddress);
+        return new HostScanResults(ip, isUP, openPorts,macAddress,hostName);
     }
-
+    private String resolveReverseDns(String ipAddress){
+        try {
+            InetAddress inetAddress=InetAddress.getByName(ipAddress);
+            String hostName=inetAddress.getCanonicalHostName();
+            if(!hostName.equals(ipAddress)){
+                return hostName;
+            }else {
+                return "N/A";
+            }
+        } catch (UnknownHostException e) {
+            return "N/A";
+        }
+    }
     private String resolveMac(String ipAddress) {
         String os=System.getProperty("os.name").toLowerCase();
         try{
