@@ -37,7 +37,8 @@ public class SmartNetController {
 
     @FXML
     private TableColumn<NetworkScanner.HostScanResults, String> ipColumn;
-
+    @FXML
+    private TableColumn<NetworkScanner.HostScanResults,String> macColumn;
     @FXML
     private TableColumn<NetworkScanner.HostScanResults, String> statusColumn;
 
@@ -59,6 +60,8 @@ public class SmartNetController {
         portsColumn.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().openPorts.isEmpty() ? "-" : data.getValue().openPorts.toString()));
+        macColumn.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleStringProperty(data.getValue().macAddress));
         popularPortsRadio.setToggleGroup(portOptionGroup);
         top1000PortsRadio.setToggleGroup(portOptionGroup);
         customPortsRadio.setToggleGroup(portOptionGroup);
