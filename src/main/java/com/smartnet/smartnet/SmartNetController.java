@@ -6,7 +6,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import com.smartnet.smartnet.network.NetworkScanner;
+import com.smartnet.smartnet.network.scanner.NetworkScanner;
+import com.smartnet.smartnet.network.models.HostScanResults;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,25 +34,25 @@ public class SmartNetController {
     @FXML
     private TextField customPortsField;
     @FXML
-    private TableView<NetworkScanner.HostScanResults> resultTable;
+    private TableView<HostScanResults> resultTable;
 
     @FXML
-    private TableColumn<NetworkScanner.HostScanResults, String> ipColumn;
+    private TableColumn<HostScanResults, String> ipColumn;
     @FXML
-    private TableColumn<NetworkScanner.HostScanResults,String> macColumn;
+    private TableColumn<HostScanResults,String> macColumn;
     @FXML
-    private TableColumn<NetworkScanner.HostScanResults,String> hostColumn;
+    private TableColumn<HostScanResults,String> hostColumn;
     @FXML
-    private TableColumn<NetworkScanner.HostScanResults, String> statusColumn;
+    private TableColumn<HostScanResults, String> statusColumn;
 
     @FXML
-    private TableColumn<NetworkScanner.HostScanResults, String> portsColumn;
+    private TableColumn<HostScanResults, String> portsColumn;
 
     @FXML
     private VBox loadingOverlay;  // Spinner container
 
     private final NetworkScanner scanner = new NetworkScanner();
-    private final ObservableList<NetworkScanner.HostScanResults> scanResults = FXCollections.observableArrayList();
+    private final ObservableList<HostScanResults> scanResults = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -151,9 +152,9 @@ public class SmartNetController {
 
             if (isCIDR) {
                 // CIDR subnet scan
-                List<NetworkScanner.HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10);
+                List<HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10);
                 Platform.runLater(() -> {
-                    for (NetworkScanner.HostScanResults result : results) {
+                    for (HostScanResults result : results) {
                         if (result.isReachable) {
                             scanResults.add(result);
                         }
@@ -162,7 +163,7 @@ public class SmartNetController {
                 });
             } else {
                 // Single IP scan
-                NetworkScanner.HostScanResults result = scanner.scanHost(IPAddress, ports);
+                HostScanResults result = scanner.scanHost(IPAddress, ports);
                 Platform.runLater(() -> {
                     if (result.isReachable) {
                         scanResults.add(result);
