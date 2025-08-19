@@ -1,5 +1,6 @@
 package com.smartnet.smartnet.network.osfingerprinting;
 
+import com.smartnet.smartnet.network.networkinterfacemanager.NetworkInterfaceManager;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.namednumber.*;
@@ -27,14 +28,15 @@ public class OSFingerprintService {
     }
 
     private final Config cfg;
+    private final PcapNetworkInterface nif;
 
-    public OSFingerprintService() { this.cfg = new Config(); }
-    public OSFingerprintService(Config cfg) { this.cfg = cfg; }
+    public OSFingerprintService() throws Exception { this.cfg = new Config();this.nif= NetworkInterfaceManager.getDefaultInterface();
+    }
+    public OSFingerprintService(Config cfg) throws Exception{ this.cfg = cfg;this.nif=NetworkInterfaceManager.getDefaultInterface(); }
 
     public OSFingerprintResult fingerprint(String targetIp) throws Exception {
         InetAddress dst = InetAddress.getByName(targetIp);
 
-        PcapNetworkInterface nif = chooseInterfaceForTarget(dst, cfg.preferredSrcAddress);
         if (nif == null) {
             throw new IllegalStateException("No suitable network interface found for " + targetIp);
         }
@@ -132,147 +134,6 @@ public class OSFingerprintService {
     }
 
     // --- Helpers ---
-
-    /**
-     * Attempts to pick the host's primary network adapter:
-     * 1) Try to parse Windows 'route print -4' to find default interface IP and match that to a Pcap interface.
-     * 2) Otherwise, pick the best non-virtual adapter with IPv4, preferring Ethernet then Wi-Fi.
-     */
-    private PcapNetworkInterface chooseInterfaceForTarget(InetAddress dst, InetAddress preferred) throws Exception {
-        List<PcapNetworkInterface> nifs = Pcaps.findAllDevs();
-        if (nifs == null || nifs.isEmpty()) {
-            throw new IllegalStateException("No NPF interfaces found. Is Npcap installed?");
-        }
-
-        // 0. If preferred IP provided, try to match it first
-        if (preferred != null) {
-            for (PcapNetworkInterface nif : nifs) {
-                for (PcapAddress addr : nif.getAddresses()) {
-                    if (addr.getAddress() != null && addr.getAddress().equals(preferred)) {
-                        if (cfg.verbose) System.out.println("Using preferred interface: " + nif.getName());
-                        return nif;
-                    }
-                }
-            }
-        }
-
-        // 1. Try to find default local IP via "route print -4" (Windows). If not Windows or parse fails, fallback.
-        String defaultLocalIp = null;
-        try {
-            defaultLocalIp = detectDefaultLocalIpWindows();
-        } catch (Exception e) {
-            // ignore parse errors and continue to heuristic fallback
-            if (cfg.verbose) System.out.println("Could not detect default IP from route print: " + e.getMessage());
-        }
-
-        if (defaultLocalIp != null) {
-            if (cfg.verbose) System.out.println("Detected default local IP: " + defaultLocalIp);
-            for (PcapNetworkInterface nif : nifs) {
-                for (PcapAddress addr : nif.getAddresses()) {
-                    if (addr.getAddress() instanceof Inet4Address) {
-                        String a = addr.getAddress().getHostAddress();
-                        if (a.equals(defaultLocalIp)) {
-                            if (cfg.verbose) System.out.println("Matched default IP to interface: " + nif.getName());
-                            return nif;
-                        }
-                    }
-                }
-            }
-        }
-
-        // 2. Heuristic: pick non-loopback, non-virtual adapter that has IPv4. Prefer Ethernet then Wi-Fi.
-        PcapNetworkInterface candidateWifi = null;
-        for (PcapNetworkInterface nif : nifs) {
-            String desc = nif.getDescription() != null ? nif.getDescription().toLowerCase() : "";
-            String name = nif.getName() != null ? nif.getName().toLowerCase() : "";
-
-            // Skip obvious junk adapters
-            if (nif.isLoopBack()) continue;
-            if (desc.contains("wan miniport") || name.contains("wan miniport")) continue;
-            if (desc.contains("wi-fi direct") || desc.contains("virtual") || desc.contains("pseudo") ||
-                    desc.contains("vmware") || desc.contains("virtualbox") || desc.contains("hyper-v") ||
-                    desc.contains("bluetooth") || name.contains("npf")) {
-                continue;
-            }
-
-            // Must have IPv4
-            boolean hasIPv4 = false;
-            for (PcapAddress addr : nif.getAddresses()) {
-                if (addr.getAddress() instanceof Inet4Address) {
-                    hasIPv4 = true;
-                    break;
-                }
-            }
-            if (!hasIPv4) continue;
-
-            // Prefer ethernet-like names/descriptions
-            if (desc.contains("ethernet") || name.startsWith("eth") || name.startsWith("en")) {
-                if (cfg.verbose) System.out.println("Auto-selected (ethernet heur) -> " + nif.getName() + " / " + nif.getDescription());
-                return nif;
-            }
-
-            // otherwise remember a wifi candidate
-            if (candidateWifi == null && (desc.contains("wi-fi") || desc.contains("wlan") || name.startsWith("wlan") || name.startsWith("wi"))) {
-                candidateWifi = nif;
-            }
-        }
-
-        if (candidateWifi != null) {
-            if (cfg.verbose) System.out.println("Auto-selected (wifi fallback) -> " + candidateWifi.getName() + " / " + candidateWifi.getDescription());
-            return candidateWifi;
-        }
-
-        // 3. final fallback: first interface with IPv4 that isn't loopback
-        for (PcapNetworkInterface nif : nifs) {
-            for (PcapAddress addr : nif.getAddresses()) {
-                if (addr.getAddress() instanceof Inet4Address) {
-                    if (cfg.verbose) System.out.println("Auto-selected (final fallback) -> " + nif.getName() + " / " + nif.getDescription());
-                    return nif;
-                }
-            }
-        }
-
-        throw new IllegalStateException("No usable IPv4 adapter found.");
-    }
-
-    /**
-     * Parse Windows 'route print -4' output and return the local interface IP used for default route if possible.
-     * Returns null if not found or not on Windows.
-     */
-    private String detectDefaultLocalIpWindows() {
-        try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (!os.contains("win")) return null;
-
-            Process p = Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "route print -4"});
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                String line;
-                boolean inIpv4Table = false;
-                while ((line = r.readLine()) != null) {
-                    line = line.trim();
-                    // Find the IPv4 Route Table header start
-                    if (line.startsWith("IPv4 Route Table")) {
-                        inIpv4Table = true;
-                        continue;
-                    }
-                    if (!inIpv4Table) continue;
-                    // Look for the line that starts with 0.0.0.0 (default route)
-                    if (line.startsWith("0.0.0.0")) {
-                        // Fields are separated by whitespace. Typical Windows line:
-                        // 0.0.0.0          0.0.0.0         192.168.1.1     192.168.1.100     25
-                        String[] parts = line.split("\\s+");
-                        if (parts.length >= 4) {
-                            // parts[3] is the local interface IP
-                            return parts[3];
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (cfg.verbose) e.printStackTrace();
-        }
-        return null;
-    }
 
     private void sendTcpSyn(PcapHandle handle, PcapNetworkInterface nif,
                             InetAddress dst, int dstPort) throws Exception {
