@@ -11,11 +11,32 @@ public class HostScanResults {
     public final List<Integer> openPorts;
     public final String macAddress;
     public final String hostName;
+    public String osName;
     public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName) {
+        this(ipAddress, isReachable, openPorts, macAddress, hostName, null);
+    }
+
+    public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName, String osName) {
         this.ipAddress = ipAddress;
         this.isReachable = isReachable;
         this.openPorts = openPorts;
         this.macAddress = macAddress;
         this.hostName = hostName;
+        this.osName = osName;
     }
+//    public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName) {
+//        this.ipAddress = ipAddress;
+//        this.isReachable = isReachable;
+//        this.openPorts = openPorts;
+//        this.macAddress = macAddress;
+//        this.hostName = hostName;
+//    }
+//    public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName,String OsName) {
+//        this.ipAddress = ipAddress;
+//        this.isReachable = isReachable;
+//        this.openPorts = openPorts;
+//        this.macAddress = macAddress;
+//        this.hostName = hostName;
+//        this.OsName = OsName;
+//    }
 }

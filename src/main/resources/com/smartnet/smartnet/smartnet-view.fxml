@@ -33,6 +33,9 @@
 
     <TextField fx:id="customPortsField" promptText="e.g. 21,22,80,443" prefWidth="200" disable="true"/>
   </HBox>
+  <HBox spacing="15" alignment="CENTER_LEFT">
+    <CheckBox fx:id="osScanCheckBox" text="Scan OS" selected="false"/>
+  </HBox>
 
   <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">
     <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
@@ -42,6 +45,7 @@
         <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/>
         <TableColumn fx:id="hostColumn" text="Host Name" prefWidth="200"/>
         <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>
+        <TableColumn fx:id="osColumn" text="Possible OS"/>
       </columns>
     </TableView>
 

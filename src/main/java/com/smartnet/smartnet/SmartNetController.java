@@ -30,12 +30,12 @@ public class SmartNetController {
     private RadioButton top1000PortsRadio;
     @FXML
     private RadioButton customPortsRadio;
-
+    @FXML
+    private CheckBox osScanCheckBox;
     @FXML
     private TextField customPortsField;
     @FXML
     private TableView<HostScanResults> resultTable;
-
     @FXML
     private TableColumn<HostScanResults, String> ipColumn;
     @FXML
@@ -47,7 +47,8 @@ public class SmartNetController {
 
     @FXML
     private TableColumn<HostScanResults, String> portsColumn;
-
+    @FXML
+    private TableColumn<HostScanResults, String> osColumn;
     @FXML
     private VBox loadingOverlay;  // Spinner container
 
@@ -67,6 +68,10 @@ public class SmartNetController {
                 new javafx.beans.property.SimpleStringProperty(data.getValue().macAddress));
         hostColumn.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(data.getValue().hostName));
+        osColumn.setCellValueFactory(data->
+                new javafx.beans.property.SimpleStringProperty(
+                        data.getValue().osName !=null?data.getValue().osName :"Unknown"
+                ));
         popularPortsRadio.setToggleGroup(portOptionGroup);
         top1000PortsRadio.setToggleGroup(portOptionGroup);
         customPortsRadio.setToggleGroup(portOptionGroup);
@@ -148,11 +153,11 @@ public class SmartNetController {
                     return;
                 }
             }
-
+            boolean osScan=osScanCheckBox.isSelected();
 
             if (isCIDR) {
                 // CIDR subnet scan
-                List<HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10);
+                List<HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10,osScan);
                 Platform.runLater(() -> {
                     for (HostScanResults result : results) {
                         if (result.isReachable) {
@@ -163,7 +168,12 @@ public class SmartNetController {
                 });
             } else {
                 // Single IP scan
-                HostScanResults result = scanner.scanHost(IPAddress, ports);
+                HostScanResults result;
+                try {
+                    result = scanner.scanHost(IPAddress, ports,osScan);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 Platform.runLater(() -> {
                     if (result.isReachable) {
                         scanResults.add(result);

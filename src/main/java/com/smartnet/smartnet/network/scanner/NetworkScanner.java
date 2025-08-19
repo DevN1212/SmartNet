@@ -9,6 +9,7 @@ import com.smartnet.smartnet.network.macutils.Mac;
 import com.smartnet.smartnet.network.models.HostScanResults;
 import com.smartnet.smartnet.network.utils.PortScanner;
 import com.smartnet.smartnet.network.utils.Reachability;
+import com.smartnet.smartnet.network.osfingerprinting.*;
 /**
  * NetworkScanner provides utilities to scan hosts and subnets for reachability and open ports.
  */
@@ -40,20 +41,53 @@ public class NetworkScanner {
 
         return new HostScanResults(ip, isUP, openPorts,macAddress,hostName);
     }
+    public HostScanResults scanHost(String ip, List<Integer> ports, boolean osScan) throws Exception {
+        boolean isUP = reachability.isReachable(ip);
+        List<Integer> openPorts = new ArrayList<>();
+        String macAddress="-";
+        String hostName="N/A";
+        String os="Unknown";
+        if (isUP) {
+            for (int port : ports) {
+                if (portScanner.isPortOpen(ip, port, 200)) {
+                    openPorts.add(port);
+                }
+            }
+            hostName=dnsResolver.resolveReverseDns(ip);
+            macAddress=macResolver.resolveMac(ip);
+            OSFingerprintService.Config config=new OSFingerprintService.Config();
+            config.verbose=true;
+            config.usePromiscuous=false;
+            OSFingerprintService service=new OSFingerprintService(config);
+            OSFingerprintResult result=service.fingerprint(ip);
+            os=result.getOsName();
+        }
+
+        return new HostScanResults(ip, isUP, openPorts,macAddress,hostName,os);
+    }
 
 
     /**
      * Scans a subnet using a thread pool for concurrency.
      */
-    public List<HostScanResults> scanSubnetCIDRThreadPool(String cidr, List<Integer> ports, int threads) {
+    public List<HostScanResults> scanSubnetCIDRThreadPool(String cidr, List<Integer> ports, int threads,boolean osScan) {
         IPGenerator generator=new IPGenerator();
         List<String> ipAddresses = generator.generateIP(cidr);
         threads=Math.min(threads, ipAddresses.size());
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         List<Future<HostScanResults>> futures = new ArrayList<>();
 
+//        for (String ip : ipAddresses) {
+//            futures.add(executor.submit(() -> scanHost(ip, ports)));
+//        }
         for (String ip : ipAddresses) {
-            futures.add(executor.submit(() -> scanHost(ip, ports)));
+            futures.add(executor.submit(() -> {
+                if (osScan) {
+                    return scanHost(ip, ports, true);
+                } else {
+                    return scanHost(ip, ports);
+                }
+            }));
         }
 
         List<HostScanResults> results = new ArrayList<>();
