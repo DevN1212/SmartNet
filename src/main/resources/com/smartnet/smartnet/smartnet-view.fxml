@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox alignment="TOP_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.smartnet.smartnet.SmartNetController">
+      fx:controller="com.smartnet.smartnet.SmartNetController" stylesheets="@styles.css">
   <padding>
     <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
   </padding>
@@ -39,7 +39,7 @@
 
   <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">
     <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
-      <columns>
+    <columns>
         <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="150"/>
         <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>
         <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/>

@@ -1,0 +1,31 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #f5f6fa;
+}
+
+.table-view {
+    -fx-border-color: transparent;
+    -fx-background-color: white;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0.1, 0, 2);
+}
+
+.table-column {
+    -fx-alignment: CENTER-LEFT;
+}
+
+.button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+.button:hover {
+    -fx-background-color: #45a049;
+}
+
+.progress-indicator {
+    -fx-progress-color: #4CAF50;
+}

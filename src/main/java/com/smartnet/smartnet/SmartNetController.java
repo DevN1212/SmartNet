@@ -80,7 +80,13 @@ public class SmartNetController {
         customPortsRadio.selectedProperty().addListener((obs, oldVal, newVal) -> {
             customPortsField.setDisable(!newVal);
         });
+        osColumn.setVisible(false);
 
+        // Toggle visibility when checkbox is clicked
+        osScanCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            osColumn.setVisible(newVal);
+        });
+        resultTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         resultTable.setItems(scanResults);
     }
     @FXML
