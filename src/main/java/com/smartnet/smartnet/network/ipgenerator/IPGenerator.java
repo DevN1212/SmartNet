@@ -24,10 +24,16 @@ public class IPGenerator {
             throw new IllegalArgumentException("Invalid base IP: " + baseIP);
         }
 
+        // Convert given base IP to int
         int baseInt = ((ip[0] & 0xFF) << 24) | ((ip[1] & 0xFF) << 16) | ((ip[2] & 0xFF) << 8) | (ip[3] & 0xFF);
 
-        for (int i = 1; i < numberOfIPs - 1; i++) { // Skip network and broadcast
-            int currentIPInt = baseInt + i;
+        // Compute network and broadcast
+        int mask = prefixLength == 0 ? 0 : ~((1 << hostBits) - 1);
+        int networkInt = baseInt & mask;
+        int broadcastInt = networkInt + numberOfIPs - 1;
+
+        // Generate from given IP to broadcast-1
+        for (int currentIPInt = baseInt; currentIPInt < broadcastInt; currentIPInt++) {
             String ipString = String.format("%d.%d.%d.%d",
                     (currentIPInt >> 24) & 0xFF,
                     (currentIPInt >> 16) & 0xFF,
