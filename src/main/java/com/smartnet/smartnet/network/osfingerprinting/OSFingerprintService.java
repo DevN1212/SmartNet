@@ -7,8 +7,6 @@ import org.pcap4j.packet.namednumber.*;
 import org.pcap4j.util.MacAddress;
 import com.smartnet.smartnet.network.osfingerprinting.OSFingerprintResult.OSFamily;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.*;
