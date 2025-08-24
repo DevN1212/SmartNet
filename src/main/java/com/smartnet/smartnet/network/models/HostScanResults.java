@@ -24,7 +24,32 @@ public class HostScanResults {
         this.hostName = hostName;
         this.osName = osName;
     }
-//    public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName) {
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public boolean isReachable() {
+        return isReachable;
+    }
+
+    public List<Integer> getOpenPorts() {
+        return openPorts;
+    }
+
+    public String getOsName() {
+        return osName;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
+    }
+
+    //    public HostScanResults(String ipAddress, boolean isReachable, List<Integer> openPorts, String macAddress, String hostName) {
 //        this.ipAddress = ipAddress;
 //        this.isReachable = isReachable;
 //        this.openPorts = openPorts;

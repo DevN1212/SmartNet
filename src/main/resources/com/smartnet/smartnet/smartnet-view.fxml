@@ -54,6 +54,7 @@
       <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>
     </VBox>
   </StackPane>
+  <Button fx:id="exportCSV" text="Export CSV" onAction="#onExportCSV" disable="true"/>
 </VBox>
 
         <!--<?xml version="1.0" encoding="UTF-8"?>-->

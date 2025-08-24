@@ -8,7 +8,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import com.smartnet.smartnet.network.scanner.NetworkScanner;
 import com.smartnet.smartnet.network.models.HostScanResults;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,7 +55,8 @@ public class SmartNetController {
     private TableColumn<HostScanResults, String> osColumn;
     @FXML
     private VBox loadingOverlay;  // Spinner container
-
+    @FXML
+    private Button exportCSV;
     private final NetworkScanner scanner = new NetworkScanner();
     private final ObservableList<HostScanResults> scanResults = FXCollections.observableArrayList();
 
@@ -88,9 +93,11 @@ public class SmartNetController {
         });
         resultTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         resultTable.setItems(scanResults);
+        exportCSV.setDisable(true);
     }
     @FXML
     protected void startScan() {
+        exportCSV.setDisable(true);
         String IPAddress = IPAddress_in.getText().trim();
         scanResults.clear();
 
@@ -171,6 +178,7 @@ public class SmartNetController {
                         }
                     }
                     finishScan();
+                    if(!scanResults.isEmpty()) exportCSV.setDisable(false);
                 });
             } else {
                 // Single IP scan
@@ -185,9 +193,47 @@ public class SmartNetController {
                         scanResults.add(result);
                     }
                     finishScan();
+                    if(!scanResults.isEmpty()) exportCSV.setDisable(false);
                 });
             }
         }).start();
+    }
+    @FXML
+    private void onExportCSV(){
+        FileChooser fileChooser=new FileChooser();
+        fileChooser.setTitle("Save CSV Report");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files","*.csv"));
+        File file=fileChooser.showSaveDialog(resultTable.getScene().getWindow());
+        if(file!=null){
+            try(FileWriter writer=new FileWriter(file)) {
+                if(osScanCheckBox.isSelected()) {
+                    writer.write("IP,Hostname,MAC,Open_Ports,OS\n");
+                    for (HostScanResults results:resultTable.getItems()){
+                        writer.write(String.format("%s,%s,%s,%s,%s\n",
+                                results.getIpAddress(),
+                                results.getHostName(),
+                                results.getMacAddress(),
+                                results.getOpenPorts().toString(),
+                                results.getOsName()
+                                ));
+                    }
+                }
+                else {
+                    writer.write("IP,Hostname,MAC,Open_Ports\n");
+                    for (HostScanResults results:resultTable.getItems()){
+                        writer.write(String.format("%s,%s,%s,%s\n",
+                                results.getIpAddress(),
+                                results.getHostName(),
+                                results.getMacAddress(),
+                                results.getOpenPorts().toString()
+                        ));
+                    }
+                }
+            }catch (IOException e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Failed to export CSV: " + e.getMessage()).showAndWait();
+            }
+        }
     }
 
     private void finishScan() {
