@@ -82,6 +82,15 @@ public class NetworkInterfaceManager {
 
         throw new IllegalStateException("No usable IPv4 adapter found.");
     }
+    public static String getDefaultInterfaceIp() throws Exception {
+        PcapNetworkInterface nif = getDefaultInterface();
+        for (PcapAddress addr : nif.getAddresses()) {
+            if (addr.getAddress() instanceof Inet4Address) {
+                return addr.getAddress().getHostAddress();
+            }
+        }
+        return null; // no IPv4 found
+    }
 
     private static String detectDefaultLocalIpWindows() {
         try {

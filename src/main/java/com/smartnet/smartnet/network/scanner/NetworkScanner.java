@@ -1,5 +1,7 @@
 package com.smartnet.smartnet.network.scanner;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -7,6 +9,7 @@ import com.smartnet.smartnet.network.dnsutils.DnsResolver;
 import com.smartnet.smartnet.network.ipgenerator.IPGenerator;
 import com.smartnet.smartnet.network.macutils.Mac;
 import com.smartnet.smartnet.network.models.HostScanResults;
+import com.smartnet.smartnet.network.networkinterfacemanager.NetworkInterfaceManager;
 import com.smartnet.smartnet.network.utils.PortScanner;
 import com.smartnet.smartnet.network.utils.Reachability;
 import com.smartnet.smartnet.network.osfingerprinting.*;
@@ -76,7 +79,13 @@ public class NetworkScanner {
         threads=Math.min(threads, ipAddresses.size());
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         List<Future<HostScanResults>> futures = new ArrayList<>();
-
+        String host_Ip= null;
+        try {
+            host_Ip = NetworkInterfaceManager.getDefaultInterfaceIp();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        ipAddresses.remove(host_Ip);
 //        for (String ip : ipAddresses) {
 //            futures.add(executor.submit(() -> scanHost(ip, ports)));
 //        }
