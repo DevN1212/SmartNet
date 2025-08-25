@@ -3,6 +3,7 @@ package com.smartnet.smartnet;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.collections.FXCollections;
@@ -32,8 +33,8 @@ public class SmartNetController {
 
     @FXML private TableView<HostScanResults> resultTable;
     @FXML private TableColumn<HostScanResults, String> ipColumn;
-    @FXML private TableColumn<HostScanResults,String> macColumn;
-    @FXML private TableColumn<HostScanResults,String> hostColumn;
+//    @FXML private TableColumn<HostScanResults,String> macColumn;
+//    @FXML private TableColumn<HostScanResults,String> hostColumn;
     @FXML private TableColumn<HostScanResults, String> statusColumn;
 //    @FXML private TableColumn<HostScanResults, String> portsColumn;
     @FXML private TableColumn<HostScanResults, String> osColumn;
@@ -43,10 +44,12 @@ public class SmartNetController {
 
     // Details panel fields
     @FXML private Label detailIp;
+    @FXML private Label macLabel;
     @FXML private Label detailMac;
     @FXML private Label detailHost;
     @FXML private Label detailOs;
     @FXML private Label detailPorts;
+
 
     private final NetworkScanner scanner = new NetworkScanner();
     private final ObservableList<HostScanResults> scanResults = FXCollections.observableArrayList();
@@ -54,19 +57,19 @@ public class SmartNetController {
     @FXML
     public void initialize() {
         ipColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().ipAddress));
+                new javafx.beans.property.SimpleStringProperty(data.getValue().getIpAddress()));
         statusColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().isReachable ? "UP" : "DOWN"));
+                new javafx.beans.property.SimpleStringProperty(data.getValue().isReachable() ? "UP" : "DOWN"));
 //        portsColumn.setCellValueFactory(data ->
 //                new javafx.beans.property.SimpleStringProperty(
 //                        data.getValue().openPorts.isEmpty() ? "-" : data.getValue().openPorts.toString()));
-        macColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().macAddress));
-        hostColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().hostName));
+//        macColumn.setCellValueFactory(data ->
+//                new javafx.beans.property.SimpleStringProperty(data.getValue().getMacAddress()));
+//        hostColumn.setCellValueFactory(data ->
+//                new javafx.beans.property.SimpleStringProperty(data.getValue().getHostName()));
         osColumn.setCellValueFactory(data->
                 new javafx.beans.property.SimpleStringProperty(
-                        data.getValue().osName !=null?data.getValue().osName :"Unknown"
+                        data.getValue().getOsName() !=null?data.getValue().getOsName() :"Unknown"
                 ));
 
         popularPortsRadio.setToggleGroup(portOptionGroup);
@@ -92,7 +95,21 @@ public class SmartNetController {
                 (obs, oldSel, newSel) -> {
                     if (newSel != null) {
                         detailIp.setText(newSel.getIpAddress());
-                        detailMac.setText(newSel.getMacAddress());
+                        //detailMac.setText(newSel.getMacAddress());
+                        // MAC handling
+                        // MAC handling
+                        if (newSel.getMacAddress() != "Unknown") {
+                            macLabel.setVisible(true);
+                            macLabel.setManaged(true);
+                            detailMac.setVisible(true);
+                            detailMac.setManaged(true);
+                            detailMac.setText(newSel.getMacAddress());
+                        } else {
+                            macLabel.setVisible(false);
+                            macLabel.setManaged(false);
+                            detailMac.setVisible(false);
+                            detailMac.setManaged(false);
+                        }
                         detailHost.setText(newSel.getHostName());
                         detailOs.setText(newSel.getOsName() != null ? newSel.getOsName() : "Unknown");
                         detailPorts.setText(newSel.getOpenPorts().isEmpty() ? "-" :
@@ -100,6 +117,10 @@ public class SmartNetController {
                     } else {
                         detailIp.setText("-");
                         detailMac.setText("-");
+                        macLabel.setVisible(false);
+                        macLabel.setManaged(false);
+                        detailMac.setVisible(false);
+                        detailMac.setManaged(false);
                         detailHost.setText("-");
                         detailOs.setText("-");
                         detailPorts.setText("-");
@@ -181,7 +202,7 @@ public class SmartNetController {
                 List<HostScanResults> results = scanner.scanSubnetCIDRThreadPool(fullCIDR, ports, 10, osScan);
                 Platform.runLater(() -> {
                     for (HostScanResults result : results) {
-                        if (result.isReachable) {
+                        if (result.isReachable()) {
                             scanResults.add(result);
                         }
                     }
@@ -197,7 +218,7 @@ public class SmartNetController {
                     throw new RuntimeException(e);
                 }
                 Platform.runLater(() -> {
-                    if (result.isReachable) {
+                    if (result.isReachable()) {
                         scanResults.add(result);
                     }
                     finishScan();

@@ -44,9 +44,9 @@
       <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
         <columns>
           <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="150"/>
-          <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>
-          <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/>
-          <TableColumn fx:id="hostColumn" text="Host Name" prefWidth="200"/>
+          <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>>-->
+          <!--          <TableColumn fx:id="hostColumn" text="Host Name" prefWidth="200"/>
+          <!--          <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/-->
 <!--          <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>-->
           <TableColumn fx:id="osColumn" text="Possible OS"/>
         </columns>
@@ -71,7 +71,7 @@
           <Label text="IP Address:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
           <Label fx:id="detailIp" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-          <Label text="MAC Address:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+          <Label text="MAC Address:" fx:id="macLabel" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
           <Label fx:id="detailMac" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
           <Label text="Hostname:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
