@@ -5,9 +5,9 @@
 <?import javafx.scene.layout.*?>
 
 <VBox alignment="TOP_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.smartnet.smartnet.SmartNetController">
+      fx:controller="com.smartnet.smartnet.SmartNetController" stylesheets="@styles.css">
   <padding>
-    <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+    <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
   </padding>
 
   <Label text="SmartNet CIDR Scanner" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
@@ -26,28 +26,69 @@
     <fx:define>
       <ToggleGroup fx:id="portOptionGroup"/>
     </fx:define>
-
     <RadioButton fx:id="popularPortsRadio" text="Popular Ports" toggleGroup="$portOptionGroup" selected="true"/>
     <RadioButton fx:id="top1000PortsRadio" text="Top 1000 Ports" toggleGroup="$portOptionGroup"/>
     <RadioButton fx:id="customPortsRadio" text="Custom Ports" toggleGroup="$portOptionGroup"/>
-
     <TextField fx:id="customPortsField" promptText="e.g. 21,22,80,443" prefWidth="200" disable="true"/>
   </HBox>
 
-  <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">
-    <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
-      <columns>
-        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="200"/>
-        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
-        <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>
-      </columns>
-    </TableView>
+  <HBox spacing="15" alignment="CENTER_LEFT">
+    <CheckBox fx:id="osScanCheckBox" text="Scan OS" selected="false"/>
+  </HBox>
 
-    <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="10" visible="false">
-      <ProgressIndicator fx:id="progressIndicator" prefWidth="50" prefHeight="50"/>
-      <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>
-    </VBox>
-  </StackPane>
+  <!-- SplitPane: Table (top) + Details (bottom) -->
+  <SplitPane orientation="VERTICAL" dividerPositions="0.65" prefHeight="500" prefWidth="800">
+
+    <!-- Results Table -->
+    <StackPane>
+      <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">
+        <columns>
+          <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="150"/>
+          <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>>-->
+          <!--          <TableColumn fx:id="hostColumn" text="Host Name" prefWidth="200"/>
+          <!--          <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/-->
+<!--          <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>-->
+          <TableColumn fx:id="osColumn" text="Possible OS"/>
+        </columns>
+      </TableView>
+
+      <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="10" visible="false">
+        <ProgressIndicator fx:id="progressIndicator" prefWidth="50" prefHeight="50"/>
+        <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>
+      </VBox>
+    </StackPane>
+
+    <!-- Details Panel -->
+    <AnchorPane>
+      <VBox spacing="8" style="-fx-padding:10;">
+        <Label text="Host Details" style="-fx-font-size:14; -fx-font-weight:bold;"/>
+        <GridPane hgap="10" vgap="5">
+          <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" minWidth="100"/>
+            <ColumnConstraints halignment="LEFT" minWidth="200"/>
+          </columnConstraints>
+
+          <Label text="IP Address:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+          <Label fx:id="detailIp" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+          <Label text="MAC Address:" fx:id="macLabel" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+          <Label fx:id="detailMac" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+          <Label text="Hostname:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+          <Label fx:id="detailHost" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+          <Label text="OS Fingerprint:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+          <Label fx:id="detailOs" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+          <Label text="Open Ports:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+          <Label fx:id="detailPorts" text="-" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        </GridPane>
+      </VBox>
+    </AnchorPane>
+
+  </SplitPane>
+
+  <Button fx:id="exportCSV" text="Export CSV" onAction="#onExportCSV" disable="true"/>
 </VBox>
 
         <!--<?xml version="1.0" encoding="UTF-8"?>-->
@@ -57,7 +98,7 @@
 <!--<?import javafx.scene.layout.*?>-->
 
 <!--<VBox alignment="TOP_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"-->
-<!--      fx:controller="com.smartnet.smartnet.SmartNetController">-->
+<!--      fx:controller="com.smartnet.smartnet.SmartNetController" stylesheets="@styles.css">-->
 <!--  <padding>-->
 <!--    <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>-->
 <!--  </padding>-->
@@ -71,21 +112,33 @@
 <!--    <TextField fx:id="cidrRange" promptText="(optional)" prefWidth="80"/>-->
 <!--    <Button fx:id="scan" text="Scan" onAction="#startScan"/>-->
 <!--  </HBox>-->
-<!--    <Label text="Port Scan Options:" style="-fx-font-weight: bold;"/>-->
 
-<!--    <HBox spacing="15" alignment="CENTER">-->
-<!--      <RadioButton fx:id="popularPortsRadio" text="Popular Ports" selected="true" toggleGroup="$portOptionGroup"/>-->
-<!--      <RadioButton fx:id="top1000PortsRadio" text="Top 1000 Ports" toggleGroup="$portOptionGroup"/>-->
-<!--      <RadioButton fx:id="customPortsRadio" text="Custom Ports" toggleGroup="$portOptionGroup"/>-->
+<!--  <Label text="Port Scan Options:" style="-fx-font-weight: bold;"/>-->
 
-<!--      <TextField fx:id="customPortsField" promptText="e.g. 21,22,80,443" prefWidth="200" disable="true"/>-->
-<!--    </HBox>-->
+<!--  <HBox spacing="15" alignment="CENTER">-->
+<!--    <fx:define>-->
+<!--      <ToggleGroup fx:id="portOptionGroup"/>-->
+<!--    </fx:define>-->
+
+<!--    <RadioButton fx:id="popularPortsRadio" text="Popular Ports" toggleGroup="$portOptionGroup" selected="true"/>-->
+<!--    <RadioButton fx:id="top1000PortsRadio" text="Top 1000 Ports" toggleGroup="$portOptionGroup"/>-->
+<!--    <RadioButton fx:id="customPortsRadio" text="Custom Ports" toggleGroup="$portOptionGroup"/>-->
+
+<!--    <TextField fx:id="customPortsField" promptText="e.g. 21,22,80,443" prefWidth="200" disable="true"/>-->
+<!--  </HBox>-->
+<!--  <HBox spacing="15" alignment="CENTER_LEFT">-->
+<!--    <CheckBox fx:id="osScanCheckBox" text="Scan OS" selected="false"/>-->
+<!--  </HBox>-->
+
 <!--  <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">-->
 <!--    <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">-->
-<!--      <columns>-->
-<!--        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="200"/>-->
-<!--        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>-->
+<!--    <columns>-->
+<!--        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="150"/>-->
+<!--        <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>-->
+<!--        <TableColumn fx:id="macColumn" text="Mac Address" prefWidth="150"/>-->
+<!--        <TableColumn fx:id="hostColumn" text="Host Name" prefWidth="200"/>-->
 <!--        <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>-->
+<!--        <TableColumn fx:id="osColumn" text="Possible OS"/>-->
 <!--      </columns>-->
 <!--    </TableView>-->
 
@@ -94,4 +147,51 @@
 <!--      <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>-->
 <!--    </VBox>-->
 <!--  </StackPane>-->
+<!--  <Button fx:id="exportCSV" text="Export CSV" onAction="#onExportCSV" disable="true"/>-->
 <!--</VBox>-->
+
+<!--        &lt;!&ndash;<?xml version="1.0" encoding="UTF-8"?>&ndash;&gt;-->
+
+<!--&lt;!&ndash;<?import javafx.geometry.Insets?>&ndash;&gt;-->
+<!--&lt;!&ndash;<?import javafx.scene.control.*?>&ndash;&gt;-->
+<!--&lt;!&ndash;<?import javafx.scene.layout.*?>&ndash;&gt;-->
+
+<!--&lt;!&ndash;<VBox alignment="TOP_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"&ndash;&gt;-->
+<!--&lt;!&ndash;      fx:controller="com.smartnet.smartnet.SmartNetController">&ndash;&gt;-->
+<!--&lt;!&ndash;  <padding>&ndash;&gt;-->
+<!--&lt;!&ndash;    <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>&ndash;&gt;-->
+<!--&lt;!&ndash;  </padding>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <Label text="SmartNet CIDR Scanner" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <HBox spacing="10.0" alignment="CENTER">&ndash;&gt;-->
+<!--&lt;!&ndash;    <Label text="IPAddress:"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <TextField fx:id="IPAddress_in" promptText="e.g., 192.168.1.0" prefWidth="250"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <Label text="Subnet:"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <TextField fx:id="cidrRange" promptText="(optional)" prefWidth="80"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <Button fx:id="scan" text="Scan" onAction="#startScan"/>&ndash;&gt;-->
+<!--&lt;!&ndash;  </HBox>&ndash;&gt;-->
+<!--&lt;!&ndash;    <Label text="Port Scan Options:" style="-fx-font-weight: bold;"/>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <HBox spacing="15" alignment="CENTER">&ndash;&gt;-->
+<!--&lt;!&ndash;      <RadioButton fx:id="popularPortsRadio" text="Popular Ports" selected="true" toggleGroup="$portOptionGroup"/>&ndash;&gt;-->
+<!--&lt;!&ndash;      <RadioButton fx:id="top1000PortsRadio" text="Top 1000 Ports" toggleGroup="$portOptionGroup"/>&ndash;&gt;-->
+<!--&lt;!&ndash;      <RadioButton fx:id="customPortsRadio" text="Custom Ports" toggleGroup="$portOptionGroup"/>&ndash;&gt;-->
+
+<!--&lt;!&ndash;      <TextField fx:id="customPortsField" promptText="e.g. 21,22,80,443" prefWidth="200" disable="true"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    </HBox>&ndash;&gt;-->
+<!--&lt;!&ndash;  <StackPane alignment="CENTER" prefHeight="400" prefWidth="600">&ndash;&gt;-->
+<!--&lt;!&ndash;    <TableView fx:id="resultTable" prefHeight="400" prefWidth="600">&ndash;&gt;-->
+<!--&lt;!&ndash;      <columns>&ndash;&gt;-->
+<!--&lt;!&ndash;        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="200"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <TableColumn fx:id="portsColumn" text="Open Ports" prefWidth="300"/>&ndash;&gt;-->
+<!--&lt;!&ndash;      </columns>&ndash;&gt;-->
+<!--&lt;!&ndash;    </TableView>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="10" visible="false">&ndash;&gt;-->
+<!--&lt;!&ndash;      <ProgressIndicator fx:id="progressIndicator" prefWidth="50" prefHeight="50"/>&ndash;&gt;-->
+<!--&lt;!&ndash;      <Label text="Scanning..." style="-fx-font-size: 14px; -fx-text-fill: gray;"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    </VBox>&ndash;&gt;-->
+<!--&lt;!&ndash;  </StackPane>&ndash;&gt;-->
+<!--&lt;!&ndash;</VBox>&ndash;&gt;-->
