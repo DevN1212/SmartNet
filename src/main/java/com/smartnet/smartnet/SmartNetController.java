@@ -60,6 +60,13 @@ public class SmartNetController {
                 new javafx.beans.property.SimpleStringProperty(data.getValue().getIpAddress()));
         statusColumn.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(data.getValue().isReachable() ? "UP" : "DOWN"));
+//        portsColumn.setCellValueFactory(data ->
+//                new javafx.beans.property.SimpleStringProperty(
+//                        data.getValue().openPorts.isEmpty() ? "-" : data.getValue().openPorts.toString()));
+//        macColumn.setCellValueFactory(data ->
+//                new javafx.beans.property.SimpleStringProperty(data.getValue().getMacAddress()));
+//        hostColumn.setCellValueFactory(data ->
+//                new javafx.beans.property.SimpleStringProperty(data.getValue().getHostName()));
         osColumn.setCellValueFactory(data->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().getOsName() !=null?data.getValue().getOsName() :"Unknown"
